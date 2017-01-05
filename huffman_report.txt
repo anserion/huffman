@@ -1,12 +1,13 @@
-s=kollossus
-n=9
+Generate Huffman binary code for some input text
+s=kollossuss
+n=10
 =============================
 Alphabet statistica
 =============================
 1: k - p=1
 2: l - p=2
 3: o - p=2
-4: s - p=3
+4: s - p=4
 5: u - p=1
 =============================
 Huffman tree
@@ -14,21 +15,22 @@ Huffman tree
 1: p=1 to_zero=0 to_one=0 to_root=6
 2: p=2 to_zero=0 to_one=0 to_root=8
 3: p=2 to_zero=0 to_one=0 to_root=7
-4: p=3 to_zero=0 to_one=0 to_root=8
+4: p=4 to_zero=0 to_one=0 to_root=9
 5: p=1 to_zero=0 to_one=0 to_root=6
 6: p=2 to_zero=5 to_one=1 to_root=7
-7: p=4 to_zero=6 to_one=3 to_root=9
-8: p=5 to_zero=2 to_one=4 to_root=9
-9: p=9 to_zero=7 to_one=8 to_root=0
+7: p=4 to_zero=6 to_one=3 to_root=8
+8: p=6 to_zero=2 to_one=7 to_root=9
+9: p=10 to_zero=4 to_one=8 to_root=0
 =============================
 Alphabet binary codes
 ============================
-1: k - 001
+1: k - 1101
 2: l - 10
-3: o - 01
-4: s - 11
-5: u - 000
+3: o - 111
+4: s - 0
+5: u - 1100
 ============================
 Huffman code
 ============================
-00101101001111100011
+length of Huffman code: 22
+1101111101011100110000

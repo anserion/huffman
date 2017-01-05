@@ -18,10 +18,10 @@ const max_n=255; //максимальная длина текста (шабло�
 type
    //описание узла дерева Хаффмана
    tsym_node=record
-      status:integer; //0 - узел уже обработан, 1 - еще не обработан
       p:integer;      //количество символов в узле
       link_one,link_zero:integer; //ссылки на дочерние узлы дерева
       link_root:integer; //ссылка на родительский узел
+      link_next,link_prev:integer;//ссылки линейного списка
    end;
 
 //=================================================
@@ -33,12 +33,14 @@ var
    n:integer; //количество символов входного сообщения
    a_tree:array[1..max_n] of tsym_node; //дерево Хаффмана
    //вспомогательные переменные
-   i,j,i0,k,link_zero,link_one,link_root:integer;
+   i,j,k,i0:integer;
+   link_zero,link_one,link_root,link_head,link_next,link_prev:integer;
    tmp:char;
    SS:string;
    
 begin
    //ввод сообщения
+   writeln('Generate Huffman binary code for some input text');
    write('s='); readln(s); 
    //определение длины входного сообщения
    n:=length(s);
@@ -51,8 +53,10 @@ begin
       a_tree[i].link_one:=0;
       a_tree[i].link_zero:=0;
       a_tree[i].link_root:=0;
-      a_tree[i].status:=0;
+      a_tree[i].link_next:=0;
+      a_tree[i].link_prev:=0;
    end;
+   link_head:=0;
 
    //сортировка символов входного текста (плохой алгоритм)
    ss:=s;
@@ -75,8 +79,13 @@ begin
          i0:=i; k:=k+1; A:=A+ss[i];
       end;
    if ss[i0]=ss[n] then a_tree[k].p:=n-i0+1;
-   for i:=1 to k do a_tree[i].status:=1;
    n_alphabet:=k;
+   //создаем линейный список для алфавита
+   for i:=1 to n_alphabet-1 do a_tree[i].link_next:=i+1;
+   a_tree[n_alphabet].link_next:=0;
+   for i:=2 to n_alphabet do a_tree[i].link_prev:=i-1;
+   a_tree[1].link_prev:=0;
+   link_head:=1;
 
    //распечатка статистики алфавита входного сообщения
    writeln('=============================');
@@ -88,31 +97,49 @@ begin
    for i:=n_alphabet-1 downto 1 do
    begin
       //поиск первого узла с минимальным количеством символов
-      link_zero:=1; while a_tree[link_zero].status<>1 do link_zero:=link_zero+1;
-      j:=link_zero;
-      while j<=k do
+      link_zero:=link_head; j:=link_head;
+      while (j<>0)and(j<>k+1) do
       begin
-         if (a_tree[j].status=1)and(a_tree[j].p<=a_tree[link_zero].p) then link_zero:=j;
-         j:=j+1;
+         if a_tree[j].p<=a_tree[link_zero].p then link_zero:=j;
+         j:=a_tree[j].link_next;
       end;
-      a_tree[link_zero].status:=0;
+      //удаляем узел из линейного списка
+      if a_tree[link_zero].link_next=0 then a_tree[link_zero].link_next:=k+1;
+      link_next:=a_tree[link_zero].link_next;
+      link_prev:=a_tree[link_zero].link_prev;
+      if link_zero=link_head then link_head:=link_next;
+      if link_prev<>0 then a_tree[link_prev].link_next:=link_next;
+      a_tree[link_next].link_prev:=link_prev;
+      a_tree[link_zero].link_next:=0; a_tree[link_zero].link_prev:=0;
       
       //поиск второго узла с минимальным количеством символов
-      link_one:=1; while a_tree[link_one].status<>1 do link_one:=link_one+1;
-      j:=link_one;
-      while j<=k do
+      link_one:=link_head; j:=link_head;
+      while (j<>0)and(j<>k+1) do
       begin
-         if (a_tree[j].status=1)and(a_tree[j].p<=a_tree[link_one].p) then link_one:=j;
-         j:=j+1;
+         if a_tree[j].p<=a_tree[link_one].p then link_one:=j;
+         j:=a_tree[j].link_next;
       end;
-      a_tree[link_one].status:=0;
-
+      //удаляем узел из линейного списка
+      if a_tree[link_one].link_next=0 then a_tree[link_one].link_next:=k+1;
+      link_next:=a_tree[link_one].link_next;
+      link_prev:=a_tree[link_one].link_prev;
+      if link_one=link_head then link_head:=link_next;
+      if link_prev<>0 then a_tree[link_prev].link_next:=link_next;
+      a_tree[link_next].link_prev:=link_prev;
+      a_tree[link_one].link_next:=0; a_tree[link_one].link_prev:=0;
+      
       //формирование нового узла-суммы минимальных узлов предыдущего слоя
       k:=k+1;
       a_tree[link_zero].link_root:=k; a_tree[link_one].link_root:=k;
       a_tree[k].link_zero:=link_zero; a_tree[k].link_one:=link_one;
       a_tree[k].p:=a_tree[link_zero].p+a_tree[link_one].p;
-      a_tree[k].status:=1;
+      //подключаем новый узел к линейному списку
+      a_tree[k].link_next:=0;
+      if a_tree[k].link_prev=0 then 
+      begin
+			a_tree[k].link_prev:=k-1;
+			a_tree[k-1].link_next:=k;
+		end;
    end;
 
    //распечатка структуры дерева Хаффмана
@@ -153,5 +180,6 @@ begin
    writeln('============================');
    writeln('Huffman code');
    writeln('============================');
+   writeln('length of Huffman code: ',length(SS));
    writeln(SS);
 end.
